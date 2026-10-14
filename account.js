@@ -1,27 +1,14 @@
-/* Cookie session only: credentials never enter localStorage or recipe URLs. */
+/* Personal data stays in memory; transport supports local cookies and the official Aruba API. */
 (()=>{
 'use strict';
-if(window.CookStatic){
- const body=document.getElementById('account-body');
- body.innerHTML='<p>Il ricettario pubblico è disponibile senza account, con 200 ricette e tutte le copertine.</p><p class="notice">L’accesso Apple, i salvataggi e la sincronizzazione fra iPhone, iPad, Mac e web sono in preparazione. Non sono ancora attivi su questo sito.</p>';
- const show=()=>document.getElementById('login').showModal();
- window.CookAccount={show,bindRecipe(){const button=document.getElementById('save-recipe');if(button)button.onclick=show;}};
- document.getElementById('account').onclick=show;
- document.getElementById('close-login').onclick=()=>document.getElementById('login').close();
- return;
-}
 
 const el=id=>document.getElementById(id), safe=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let user=null, csrf=null, providers={apple:false}, bookmarks=[], drafts=[], editing=null, saving=false, loading=false, generation=0;
 let authReason='Verifica dell’accesso in corso…';
-async function request(path,method='GET',body){
- const headers={Accept:'application/json'};
- if(method!=='GET'){headers['Content-Type']='application/json';headers['X-CSRF-Token']=csrf||''}
- const response=await fetch(path,{method,headers,credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(10000),body:body===undefined?undefined:JSON.stringify(body)});
- const result=await response.json();
- if(!response.ok){const error=new Error(result.error||'Richiesta non riuscita');error.status=response.status;throw error}
- return result;
-}
+const auth=window.CookAuth;
+async function request(path,method='GET',body){return auth.request(path,method,body)}
+function forget(){generation++;loading=false;user=null;csrf=null;bookmarks=[];drafts=[];editing=null}
+auth.onExpired(()=>{forget();render();message('Sessione scaduta. Ripeti Accedi con Apple.')});
 function message(text){const target=el('account-message');if(target)target.textContent=text}
 function show(){el('login').showModal();load()}
 function ready(){return !!(user?.nickname&&user?.adult_declared)}
@@ -29,7 +16,8 @@ function render(){
  el('account').textContent=user?(user.nickname||'Completa profilo'):'Accedi';
  if(!user){
   editing=null;
-  el('account-body').innerHTML=`<p>Accedi con Apple per ritrovare salvataggi e bozze su iPhone, iPad, Mac e web.</p><a id="apple-login" class="primary apple-login ${providers.apple&&location.protocol==='https:'?'':'unavailable'}" ${providers.apple&&location.protocol==='https:'?'href="/api/auth/start/apple?client=web"':'aria-disabled="true"'}>Accedi con Apple</a><p class="notice">${safe(authReason)}</p><p class="tiny">Il ricettario pubblico si consulta senza account. Le tue bozze resteranno private; la pubblicazione richiederà la revisione dei contenuti.</p><p id="account-message" role="status"></p>`;
+  el('account-body').innerHTML=`<p>Accedi con Apple per ritrovare salvataggi e bozze su iPhone, iPad, Mac e web.</p><button id="apple-login" class="primary apple-login ${providers.apple&&auth.canLogin?'':'unavailable'}" ${providers.apple&&auth.canLogin?'':'disabled'}>Accedi con Apple</button><p class="notice">${safe(authReason)}</p><p class="tiny">Il ricettario pubblico si consulta senza account. Le tue bozze resteranno private; la pubblicazione richiederà la revisione dei contenuti.</p><p id="account-message" role="status"></p>`;
+  el('apple-login').onclick=async()=>{const button=el('apple-login');button.disabled=true;try{await auth.beginApple()}catch(error){message(error.message);button.disabled=!(providers.apple&&auth.canLogin)}};
   bindRecipe(); return;
  }
  if(!ready()){
@@ -38,12 +26,12 @@ function render(){
   bindLogout();bindRecipe();return;
  }
  if(editing && el('draft-editor')){renderLists();bindRecipe();return}
- el('account-body').innerHTML=`<p>Ciao <strong>${safe(user.nickname)}</strong>. Qui ritrovi il tuo ricettario su tutti i dispositivi collegati allo stesso account Apple.</p><p id="personal-sync" class="tiny" role="status"></p><div class="account-actions"><button id="new-draft" class="primary">Scrivi una bozza</button><button id="refresh-account" class="secondary">Aggiorna</button><button id="logout" class="secondary">Esci</button></div><p id="account-message" role="status"></p><section><h3>Ricette salvate</h3><div id="saved-list"></div></section><section><h3>Le tue bozze private</h3><p class="tiny">Solo tu puoi leggerle. Pubblicazione, caricamento foto e moderazione saranno aggiunti in una fase successiva.</p><div id="draft-list"></div></section><section id="draft-editor" hidden></section>`;
+ el('account-body').innerHTML=`<p>Ciao <strong>${safe(user.nickname)}</strong>. Qui ritrovi il tuo ricettario su tutti i dispositivi collegati allo stesso account Apple.</p>${auth.remote?'<p class="tiny">Dopo una ricarica della pagina, accedi nuovamente con Apple.</p>':''}<p id="personal-sync" class="tiny" role="status"></p><div class="account-actions"><button id="new-draft" class="primary">Scrivi una bozza</button><button id="refresh-account" class="secondary">Aggiorna</button><button id="logout" class="secondary">Esci</button></div><p id="account-message" role="status"></p><section><h3>Ricette salvate</h3><div id="saved-list"></div></section><section><h3>Le tue bozze private</h3><p class="tiny">Solo tu puoi leggerle. Pubblicazione, caricamento foto e moderazione saranno aggiunti in una fase successiva.</p><div id="draft-list"></div></section><section id="draft-editor" hidden></section>`;
  el('new-draft').onclick=()=>edit(null);el('refresh-account').onclick=()=>load();bindLogout();renderLists();bindRecipe();
 }
 function renderLists(){
  if(!el('saved-list'))return;
- el('saved-list').innerHTML=bookmarks.length?bookmarks.map(r=>`<div class="personal-row"><a href="/ricette/${safe(r.slug)}">${safe(r.title)}<small>${safe(r.region)}</small></a><button class="remove-bookmark" data-id="${safe(r.id)}" aria-label="Rimuovi ${safe(r.title)} dai salvati">Rimuovi</button></div>`).join(''):'<p class="tiny">Apri una ricetta e scegli “Salva nel mio ricettario”.</p>';
+ el('saved-list').innerHTML=bookmarks.length?bookmarks.map(r=>`<div class="personal-row"><a href="${safe(window.CookStatic?window.CookStatic.recipeURL(r.slug):'/ricette/'+encodeURIComponent(r.slug))}">${safe(r.title)}<small>${safe(r.region)}</small></a><button class="remove-bookmark" data-id="${safe(r.id)}" aria-label="Rimuovi ${safe(r.title)} dai salvati">Rimuovi</button></div>`).join(''):'<p class="tiny">Apri una ricetta e scegli “Salva nel mio ricettario”.</p>';
  el('draft-list').innerHTML=drafts.length?drafts.map(d=>`<div class="personal-row"><button class="edit-draft" data-id="${safe(d.id)}">${safe(d.title)}<small>Bozza privata · versione ${d.version}</small></button><button class="delete-draft" data-id="${safe(d.id)}">Elimina</button></div>`).join(''):'<p class="tiny">La tua prima ricetta di casa può cominciare da una bozza.</p>';
  document.querySelectorAll('.remove-bookmark').forEach(button=>button.onclick=()=>saveRecipe(button.dataset.id,false));
  document.querySelectorAll('.edit-draft').forEach(button=>button.onclick=()=>{if(editing&&!confirm('Chiudere la bozza aperta? Le modifiche non salvate andranno perse.'))return;edit(drafts.find(d=>d.id===button.dataset.id))});
@@ -75,15 +63,17 @@ function edit(draft){
  };
  el('draft-editor').scrollIntoView({behavior:'smooth',block:'start'});
 }
-function bindLogout(){el('logout').onclick=async()=>{if(editing&&!confirm('Uscire? Le modifiche non salvate andranno perse.'))return;try{await request('/api/auth/logout','POST');generation++;user=null;csrf=null;bookmarks=[];drafts=[];editing=null;render()}catch(error){message(error.message)}}}
+function bindLogout(){el('logout').onclick=async()=>{if(editing&&!confirm('Uscire? Le modifiche non salvate andranno perse.'))return;try{await request('/api/auth/logout','POST');auth.clearSession();forget();render()}catch(error){if(error.status===401){auth.clearSession();forget();render()}else message(error.message)}}}
 async function load(force=false){
  if(loading&&!force)return;loading=true;const id=++generation;
  try{
-  const [config,session]=await Promise.all([request('/api/auth/status'),request('/api/me')]);
+  const config=await request('/api/auth/status');
   if(id!==generation)return;
   providers=config.providers;authReason=config.reason;
+  if(auth.remote&&!providers.apple){auth.clearSession();user=null;csrf=null;bookmarks=[];drafts=[];editing=null;render();return}
+  const session=await request('/api/me');if(id!==generation)return;
   if(location.protocol!=='https:'&&providers.apple)authReason='Per accedere, apri l’indirizzo HTTPS configurato per CookAmore.';
-  const changed=user?.id!==session.user?.id;user=session.user;csrf=session.csrf;if(changed)editing=null;
+  const changed=user?.id!==session.user?.id;user=session.user;csrf=session.csrf;auth.setCSRF(csrf);if(changed)editing=null;
   if(user){const [saved,privateDrafts]=await Promise.all([request('/api/me/bookmarks'),request('/api/me/recipes')]);if(id!==generation)return;bookmarks=saved;drafts=privateDrafts}else{bookmarks=[];drafts=[]}
   render();
  }catch(error){if(id!==generation)return;message('Aggiornamento non riuscito. '+error.message);if(el('personal-sync'))el('personal-sync').textContent='Server non raggiungibile · ultimo elenco caricato';if(!el('account-body').innerHTML){authReason='Server non disponibile. Riprova quando sarà raggiungibile.';render()}}
@@ -100,8 +90,8 @@ function bindRecipe(recipe){
  const id=button.dataset.recipeId;if(!id)return;
  const saved=bookmarks.some(r=>r.id===id);button.textContent=saved?'✓ Salvata · rimuovi':'Salva nel mio ricettario';button.onclick=()=>saveRecipe(id,!saved);
 }
-window.CookAccount={bindRecipe,show};el('account').onclick=show;el('close-login').onclick=()=>{if(editing&&!confirm('Chiudere? Le modifiche non salvate andranno perse.'))return;editing=null;el('login').close();render()};
+window.CookAccount={bindRecipe,show,catalogNavigation(){el('login').close()}};el('account').onclick=show;el('close-login').onclick=()=>{if(editing&&!confirm('Chiudere? Le modifiche non salvate andranno perse.'))return;editing=null;el('login').close();render()};
 el('login').addEventListener('cancel',event=>{if(editing){event.preventDefault();el('close-login').click()}});
-load();if(new URLSearchParams(location.search).get('account')==='1')show();
+(async()=>{let failure=null;try{await auth.completeApple()}catch(error){failure=error.message}await load();if(new URLSearchParams(location.search).get('account')==='1'||failure){if(!el('login').open)el('login').showModal();if(failure)message(failure)}})();
 setInterval(()=>{if(!document.hidden)load()},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
 })();
