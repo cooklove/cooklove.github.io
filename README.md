@@ -1,6 +1,6 @@
 # CookAmore
 
-La cucina che unisce. Sito ufficiale: https://salvocac.github.io/cookamore/
+La cucina che unisce. Sito ufficiale: https://cooklove.github.io/
 
 Ricettario pubblico in sviluppo: 200 ricette, dieci per ognuna delle venti regioni italiane, con ricerca, filtri, dosi ricalcolabili, lista della spesa e link condivisibili.
 
