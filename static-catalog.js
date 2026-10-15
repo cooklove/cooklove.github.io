@@ -2,14 +2,14 @@
 (function (root) {
   'use strict';
   // Decimal arithmetic matches the API's ROUND_HALF_UP, including tiny quantities.
-  function roundedRatio(quantity, servings, base) {
+  function roundedRatio(quantity, servings, base, places = null) {
     const [mantissa, exponent = '0'] = String(quantity).toLowerCase().split('e');
     const decimals = (mantissa.split('.')[1] || '').length - Number(exponent);
     let numerator = BigInt(mantissa.replace('.', '')) * BigInt(servings);
     let denominator = BigInt(base);
     if (decimals >= 0) denominator *= 10n ** BigInt(decimals);
     else numerator *= 10n ** BigInt(-decimals);
-    const precision = numerator < denominator ? 100n : 10n;
+    const precision = places === null ? (numerator < denominator ? 100n : 10n) : 10n ** BigInt(places);
     const scaled = numerator * precision;
     const rounded = scaled / denominator + (scaled % denominator * 2n >= denominator ? 1n : 0n);
     return Number(rounded) / Number(precision);
@@ -21,6 +21,11 @@
       if (item.quantity !== null && item.scalable) item.quantity = roundedRatio(item.quantity, servings, recipe.base_servings);
     }
     result.servings = servings;
+    if (result.nutrition && Number.isFinite(result.nutrition.total_kcal)) {
+      const total = recipe.nutrition.total_kcal;
+      result.nutrition.total_kcal = roundedRatio(total, servings, recipe.base_servings, 1);
+      result.nutrition.per_serving_kcal = roundedRatio(total, 1, recipe.base_servings, 1);
+    }
     return result;
   }
   function filter(recipes, params) {
