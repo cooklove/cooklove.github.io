@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-15.1",
+  "version": "2026-10-15.2",
   "title": "Regole della community CookAmore",
   "sections": [
     {
@@ -29,6 +29,10 @@
     {
       "title": "Accesso personale",
       "text": "L’account è riservato a chi dichiara almeno 18 anni. Accedi con Apple autentica un account Apple e non verifica l’identità civile o l’età. Le bozze private non sono pubblicate e sono accessibili solo al loro autore."
+    },
+    {
+      "title": "Assistenza e segnalazioni senza account",
+      "text": "Titolare e referente della community: Salvatore Caccavo. Scrivi a salvatorecaccavo@yahoo.it per assistenza, richieste privacy, segnalazioni di contenuti illeciti o contestazioni di sospensione/disabilitazione dell’account, anche senza poter accedere. Indica il collegamento o l’identificativo del contenuto e il motivo; non inviare password, codici o documenti sensibili. Le segnalazioni e contestazioni sono esaminate manualmente."
     }
   ]
 }
