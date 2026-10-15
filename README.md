@@ -2,9 +2,9 @@
 
 La cucina che unisce. Sito ufficiale: https://cooklove.github.io/
 
-Ricettario pubblico in sviluppo: 200 ricette, dieci per ognuna delle venti regioni italiane, con ricerca, filtri, dosi ricalcolabili, lista della spesa e link condivisibili.
+Ricettario pubblico in sviluppo: 400 ricette, 20 per ognuna delle venti regioni italiane, con ricerca, filtri, dosi ricalcolabili, lista della spesa e link condivisibili.
 
-Le schede sono bozze originali assistite, in attesa di revisione editoriale. Le 200 copertine sono immagini illustrative generate con AI per CookAmore. Non sono fotografie documentali dei piatti. Le informazioni nutrizionali non sono ancora disponibili.
+Le schede sono bozze originali assistite, in attesa di revisione editoriale. Le 200 copertine presenti sono immagini illustrative generate con AI per CookAmore. Le altre schede mostrano un segnaposto esplicito in attesa della copertina dedicata. Non sono fotografie documentali dei piatti. Le informazioni nutrizionali non sono ancora disponibili.
 
 ## Pubblicazione
 
