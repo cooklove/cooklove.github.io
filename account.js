@@ -13,6 +13,7 @@ function message(text){const target=el('account-message');if(target)target.textC
 function show(){el('login').showModal();load()}
 function ready(){return !!(user?.nickname&&user?.adult_declared)}
 function render(){
+ document.dispatchEvent(new Event('cookamore-account-changed'));
  el('account').textContent=user?(user.nickname||'Completa profilo'):'Accedi';
  if(!user){
   editing=null;
@@ -21,13 +22,13 @@ function render(){
   bindRecipe(); return;
  }
  if(!ready()){
-  el('account-body').innerHTML=`<p>L’accesso Apple è confermato. Completa il profilo per usare il ricettario personale.</p><form id="onboard"><label>Nickname<input id="nickname" autocomplete="nickname" required pattern="[a-z][a-z0-9_]{2,23}" minlength="3" maxlength="24" value="${safe(user.nickname)}"></label><p class="tiny">3–24 caratteri: lettere minuscole, numeri e _. Inizia con una lettera.</p><label class="consent"><input id="adult" type="checkbox" required> Dichiaro di avere almeno 18 anni</label><p class="tiny">Questa dichiarazione non costituisce una verifica dell’età. Progetto di sviluppo, documenti privacy e termini ancora da finalizzare prima del lancio.</p><button class="primary">Completa il profilo</button></form><p id="account-message" role="status"></p><button id="logout" class="secondary">Esci</button>`;
+  el('account-body').innerHTML=`<p>L’accesso Apple è confermato. Completa il profilo per usare il ricettario personale.</p><form id="onboard"><label>Nickname<input id="nickname" autocomplete="nickname" required pattern="[a-z][a-z0-9_]{2,23}" minlength="3" maxlength="24" value="${safe(user.nickname)}"></label><p class="tiny">3–24 caratteri: lettere minuscole, numeri e _. Inizia con una lettera.</p><label class="consent"><input id="adult" type="checkbox" required> Dichiaro di avere almeno 18 anni</label><p class="tiny">Questa dichiarazione non costituisce una verifica dell’età. Progetto di sviluppo, documenti privacy e termini ancora da finalizzare prima del lancio.</p><button class="primary">Completa il profilo</button></form><p id="account-message" role="status"></p><button id="logout" class="secondary">Esci</button><button id="delete-account" class="secondary">Elimina account</button>`;
   el('onboard').onsubmit=async e=>{e.preventDefault();try{user=await request('/api/me','PATCH',{nickname:el('nickname').value,adult_declared:el('adult').checked});await load(true)}catch(error){message(error.message)}};
   bindLogout();bindRecipe();return;
  }
  if(editing && el('draft-editor')){renderLists();bindRecipe();return}
- el('account-body').innerHTML=`<p>Ciao <strong>${safe(user.nickname)}</strong>. Qui ritrovi il tuo ricettario su tutti i dispositivi collegati allo stesso account Apple.</p>${auth.remote?'<p class="tiny">Dopo una ricarica della pagina, accedi nuovamente con Apple.</p>':''}<p id="personal-sync" class="tiny" role="status"></p><div class="account-actions"><button id="new-draft" class="primary">Scrivi una bozza</button><button id="refresh-account" class="secondary">Aggiorna</button><button id="logout" class="secondary">Esci</button></div><p id="account-message" role="status"></p><section><h3>Ricette salvate</h3><div id="saved-list"></div></section><section><h3>Le tue bozze private</h3><p class="tiny">Solo tu puoi leggerle. Pubblicazione, caricamento foto e moderazione saranno aggiunti in una fase successiva.</p><div id="draft-list"></div></section><section id="draft-editor" hidden></section>`;
- el('new-draft').onclick=()=>edit(null);el('refresh-account').onclick=()=>load();bindLogout();renderLists();bindRecipe();
+ el('account-body').innerHTML=`<p>Ciao <strong>${safe(user.nickname)}</strong>. Qui ritrovi il tuo ricettario su tutti i dispositivi collegati allo stesso account Apple.</p>${auth.remote?'<p class="tiny">Dopo una ricarica della pagina, accedi nuovamente con Apple.</p>':''}<p id="personal-sync" class="tiny" role="status"></p><div class="account-actions"><button id="new-draft" class="primary">Scrivi una bozza</button><button id="refresh-account" class="secondary">Aggiorna</button><button id="personal-community" class="secondary">Community e i miei invii</button><button id="logout" class="secondary">Esci</button><button id="delete-account" class="secondary">Elimina account</button></div><p id="account-message" role="status"></p><section><h3>Ricette salvate</h3><div id="saved-list"></div></section><section><h3>Le tue bozze private</h3><p class="tiny">Solo tu puoi leggerle. Per proporle alla community occorrono accettazione delle regole, una foto autorizzata e approvazione dell’amministratore.</p><div id="draft-list"></div></section><section id="draft-editor" hidden></section>`;
+ el('personal-community').onclick=()=>window.CookCommunity.show('mine');el('new-draft').onclick=()=>edit(null);el('refresh-account').onclick=()=>load();bindLogout();renderLists();bindRecipe();
 }
 function renderLists(){
  if(!el('saved-list'))return;
@@ -63,7 +64,7 @@ function edit(draft){
  };
  el('draft-editor').scrollIntoView({behavior:'smooth',block:'start'});
 }
-function bindLogout(){el('logout').onclick=async()=>{if(editing&&!confirm('Uscire? Le modifiche non salvate andranno perse.'))return;try{await request('/api/auth/logout','POST');auth.clearSession();forget();render()}catch(error){if(error.status===401){auth.clearSession();forget();render()}else message(error.message)}}}
+function bindLogout(){el('delete-account').onclick=async()=>{if(!confirm('Eliminare definitivamente l’account CookAmore, salvataggi, bozze e foto pubblicate? Questa operazione non è reversibile. Per confermare serve un accesso Apple effettuato negli ultimi cinque minuti.'))return;try{await request('/api/me','DELETE',{confirmation:'ELIMINA'});auth.clearSession();forget();render();message('Account e dati collegati eliminati. Accesso Apple revocato.')}catch(error){message(error.message)}};el('logout').onclick=async()=>{if(editing&&!confirm('Uscire? Le modifiche non salvate andranno perse.'))return;try{await request('/api/auth/logout','POST');auth.clearSession();forget();render()}catch(error){if(error.status===401){auth.clearSession();forget();render()}else message(error.message)}}}
 async function load(force=false){
  if(loading&&!force)return;loading=true;const id=++generation;
  try{
@@ -90,7 +91,7 @@ function bindRecipe(recipe){
  const id=button.dataset.recipeId;if(!id)return;
  const saved=bookmarks.some(r=>r.id===id);button.textContent=saved?'✓ Salvata · rimuovi':'Salva nel mio ricettario';button.onclick=()=>saveRecipe(id,!saved);
 }
-window.CookAccount={bindRecipe,show,catalogNavigation(){el('login').close()}};el('account').onclick=show;el('close-login').onclick=()=>{if(editing&&!confirm('Chiudere? Le modifiche non salvate andranno perse.'))return;editing=null;el('login').close();render()};
+window.CookAccount={bindRecipe,show,user:()=>user,drafts:()=>drafts,catalogNavigation(){el('login').close()}};el('account').onclick=show;el('close-login').onclick=()=>{if(editing&&!confirm('Chiudere? Le modifiche non salvate andranno perse.'))return;editing=null;el('login').close();render()};
 el('login').addEventListener('cancel',event=>{if(editing){event.preventDefault();el('close-login').click()}});
 (async()=>{let failure=null;try{await auth.completeApple()}catch(error){failure=error.message}await load();if(new URLSearchParams(location.search).get('account')==='1'||failure){if(!el('login').open)el('login').showModal();if(failure)message(failure)}})();
 setInterval(()=>{if(!document.hidden)load()},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});

@@ -23,7 +23,7 @@
     const url=endpoint(path);
     if(!supported)throw new Error('L’accesso del sito è disponibile dall’indirizzo ufficiale HTTPS di CookAmore.');
     const headers={Accept:'application/json'},usedToken=token,started=epoch;
-    if(remote&&usedToken&&path!=='/api/auth/status')headers.Authorization='Bearer '+usedToken;
+    if(remote&&usedToken&&path!=='/api/auth/status'&&!path.startsWith('/api/community/'))headers.Authorization='Bearer '+usedToken;
     if(method!=='GET'&&method!=='HEAD'){
       headers['Content-Type']='application/json';
       if(!remote)headers['X-CSRF-Token']=csrf||'';

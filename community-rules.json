@@ -1,0 +1,34 @@
+{
+  "version": "2026-10-15.1",
+  "title": "Regole della community CookAmore",
+  "sections": [
+    {
+      "title": "Una community dedicata alla cucina",
+      "text": "Condividi ricette, ingredienti, tecniche, piatti e tradizioni gastronomiche. Non sono ammessi spam, truffe, pubblicità estranea o contenuti senza attinenza con la cucina."
+    },
+    {
+      "title": "Sicurezza e rispetto",
+      "text": "Sono vietati pornografia, contenuti sessualmente espliciti, nudità sessualizzate, sfruttamento sessuale, violenza grafica gratuita, odio, minacce, molestie e contenuti illeciti. Nessuna immagine privata può essere diffusa senza autorizzazione."
+    },
+    {
+      "title": "Diritti e consenso sulle fotografie",
+      "text": "Carica soltanto fotografie tue o che sei autorizzato a condividere. Devi avere i diritti e il consenso delle persone riconoscibili quando necessario. Non includere dati personali, documenti o informazioni sensibili. Una foto trovata online non è automaticamente utilizzabile."
+    },
+    {
+      "title": "Revisione obbligatoria",
+      "text": "Ogni ricetta e fotografia rimane privata fino all’approvazione di un amministratore. Le modifiche richiedono una nuova revisione. Sono accettate soltanto immagini JPEG o PNG; video, commenti e foto del profilo non sono disponibili. I metadati delle immagini vengono rimossi e le immagini ricodificate."
+    },
+    {
+      "title": "Decisioni e contestazioni",
+      "text": "Un rifiuto o un oscuramento è accompagnato da una motivazione. Puoi contestarlo dalla tua area personale. I casi dubbi richiedono revisione umana: nessun controllo automatico garantisce di riconoscere ogni contenuto vietato."
+    },
+    {
+      "title": "Segnalazioni, blocchi e sanzioni",
+      "text": "Puoi segnalare una ricetta, una foto o un autore e bloccare un utente. Una segnalazione non comporta automaticamente una sanzione. L’amministratore può oscurare contenuti, sospendere la pubblicazione o disabilitare un account per violazioni gravi o ripetute, con motivazione e revisione."
+    },
+    {
+      "title": "Accesso personale",
+      "text": "L’account è riservato a chi dichiara almeno 18 anni. Accedi con Apple autentica un account Apple e non verifica l’identità civile o l’età. Le bozze private non sono pubblicate e sono accessibili solo al loro autore."
+    }
+  ]
+}
