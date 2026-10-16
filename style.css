@@ -11,3 +11,14 @@
 /* Moderation stays inside the existing palette and accessible account dialog. */
 #community-dialog{width:min(960px,95vw);max-height:92dvh;overflow:auto;color:#203b2a;background:#faf8f0;border:1px solid #d9decf;border-radius:24px;padding:clamp(18px,4vw,36px)}
 .community-tabs,.account-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.community-tabs button{border:1px solid #c9d2c4;border-radius:18px;padding:9px 14px;color:#244631;background:#fff;cursor:pointer}.community-card{background:#fff;border:1px solid #dce1d6;border-radius:20px;padding:22px;margin:20px 0}.community-card h3{margin-top:5px}.community-card details{margin:16px 0}.community-photo{width:100%;max-height:420px;object-fit:contain;border-radius:14px}.community-card form,#submission-form{display:grid;gap:14px;padding:18px 0}.community-card textarea{min-height:85px}.community-history{white-space:pre-wrap;font:inherit;padding:16px;background:#f0f3e9}#community-message:empty{display:none}#community-message{color:#923916;font-weight:600}#community-body input[type=file]{max-width:100%}#community-body .consent{display:flex;align-items:start;gap:10px}#community-body .consent input{width:20px;flex-shrink:0}#community-body button{margin:4px}header nav{flex-wrap:wrap}
+
+/* Dietary filter remains independent from region and course. */
+#search-form{grid-template-columns:minmax(200px,2fr) repeat(3,minmax(130px,1fr)) auto;align-items:end}
+.vegan-badge{display:block;color:var(--olive,#2e513c);font-size:.82rem;font-weight:650;margin-top:.5rem}
+.diet-note{background:#e9eee5;color:#294b35;padding:1rem;border-radius:12px;line-height:1.5}
+.info-page{max-width:820px;margin:2rem auto;padding:1.5rem;line-height:1.65}
+.info-page h1{font-size:clamp(2rem,6vw,3.5rem)}
+@media(max-width:1050px){#search-form{grid-template-columns:repeat(2,minmax(0,1fr))}#search-form label:first-child{grid-column:1/-1}}
+@media(max-width:540px){#search-form{grid-template-columns:minmax(0,1fr)}header{gap:1rem}header nav{flex-wrap:wrap;gap:.8rem}.ingredients li{gap:1rem;align-items:flex-start}.ingredients strong{flex-shrink:0}}
+
+.vegan-entry{display:inline-block;margin-top:1rem;font-weight:650;color:#2e513c}#count{white-space:nowrap}

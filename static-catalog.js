@@ -29,8 +29,10 @@
     return result;
   }
   function filter(recipes, params) {
+    const diet = params.get('diet') || '';
+    if (!['', 'vegan'].includes(diet)) throw new Error('Filtro alimentare non valido');
     const query = (params.get('q') || '').toLocaleLowerCase('it-IT');
-    return recipes.filter(r => ['region', 'category'].every(key => !params.get(key) || r[key] === params.get(key)) &&
+    return recipes.filter(r => (!diet || r.dietary?.vegan === 'compatible') && ['region', 'category'].every(key => !params.get(key) || r[key] === params.get(key)) &&
       [r.title, r.region, r.category, ...r.ingredients.map(i => i.name)].join(' ').toLocaleLowerCase('it-IT').includes(query));
   }
   if (typeof module !== 'undefined' && module.exports) { module.exports = {scale, filter}; return; }
